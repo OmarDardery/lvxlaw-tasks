@@ -65,6 +65,7 @@
             display: flex;
             min-height: 100vh;
             padding-top: 64px;
+            padding-right: var(--sidebar-width);
         }
 
         /* Navbar styles */
@@ -173,6 +174,7 @@
         }
 
         /* Sidebar Styles */
+
         .sidebar {
             width: var(--sidebar-width);
             background: var(--sidebar-bg);
@@ -186,8 +188,21 @@
             box-shadow: 1px 0 6px rgba(0, 0, 0, 0.1);
             z-index: 999;
             padding-top: 8vh;
+            transform: translateX(-100%);
         }
-
+        #right-sidebar{
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            color: white;
+            top: 64px;
+            position: fixed;
+            right: 0;
+            height: calc(100vh - 64px);
+            padding: 1rem 0;
+            overflow-y: auto;
+            box-shadow: 1px 0 6px rgba(0, 0, 0, 0.1);
+            z-index: 999;
+        }
         [data-theme="dark"] .sidebar {
             background: linear-gradient(180deg, var(--primary), var(--secondary));
         }
@@ -263,6 +278,7 @@
             flex: 1;
             margin-top: 64px;
             transition: margin-left 0.2s ease;
+            margin-right: var(--sidebar-width);
         }
 
         /* Tab Navigation */
@@ -788,6 +804,7 @@
                 margin-left: 0;
                 padding-top: 100px;
             }
+            #right-sidebar,
             .sidebar {
                 width: 100%;
                 height: auto;
@@ -856,7 +873,7 @@
         }
     </style>
 </head>
-<body >
+<body style="position: relative;" >
     <!-- Header -->
     <nav class="navbar">
         <div class="logo">
@@ -888,6 +905,9 @@
         Menu
     </button>
     <!-- Sidebar -->
+     <nav id="right-sidebar">
+
+    </nav>
     <nav class="sidebar" id="sidebar">
         <div class="nav-section">
             <h3 class="nav-title">Team Database</h3>
@@ -909,7 +929,6 @@
             <a href="whats-new" class="nav-item"><i class="fas fa-info-circle"></i> What's New</a>
         </div>
     </nav>
-
     <!-- Main Content Area -->
     <main class="main-content">
         <!-- Tab Navigation -->
@@ -1069,7 +1088,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
     $(document).ready(function() {
-        $("#sidebar").css("transform", "translateX(-240px)");
         $("#sidebar-listener").css("backgroundColor", "#4361EE");
         $("#sidebar-listener").css("color", "#fff");
         $("#sidebar-listener").on("click", function() {
@@ -1239,14 +1257,13 @@
                             this.classList.add('active');
                             loadContractDetails(JSON.parse(this.dataset.result));
                         });
-
                         contractSectionsContainer.appendChild(contractSection);
                     }
                 });
             });
         }
 
-        teamDatabaseSection.insertAdjacentElement('afterend', contractSectionsContainer);
+        $("#right-sidebar").append(contractSectionsContainer);
         
         // Activate the first section if any exists
         const firstContractSection = contractSectionsContainer.querySelector('.contract-section');
