@@ -672,10 +672,10 @@
             width: 100%;
         }
         .cssbuttons-io-button {
-          background: #a370f0;
+          background: #3f37c9;
           color: white;
           font-family: inherit;
-          padding: 0.35em;
+          padding: 0.125em;
           padding-left: 1.2em;
           font-size: 17px;
           font-weight: 500;
@@ -687,7 +687,7 @@
           box-shadow: inset 0 0 1.6em -0.6em #714da6;
           overflow: hidden;
           position: relative;
-          height: 2.4em;
+          height: 2.1em;
           padding-right: 3.3em;
           cursor: pointer;
         }
@@ -708,7 +708,7 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          height: 2.2em;
+          height: 2em;
           width: 2.2em;
           border-radius: 0.7em;
           box-shadow: 0.1em 0.1em 0.6em 0.2em #7b52b9;
@@ -792,6 +792,15 @@
             z-index: 1001;
             margin-top: 11vh;
             margin-left: 1vw;
+        }
+        #download-chat-button{
+            background-color: #3f37c9;
+            color: #f5fff7;
+            padding: 0.5em;
+            cursor: pointer;
+            border: none;
+            border-radius: 0.2em;
+            font-size: 0.9rem;
         }
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -1006,6 +1015,9 @@
 
                 </div>
                 <div id="input-container">
+                    <button id="download-chat-button" title="Download chat">
+                        <i class="fas fa-download"></i>
+                    </button>
                     <input type="text" id="user-input" placeholder="Type your message here...">
                     <button id="send-button" class="cssbuttons-io-button">
                       Send
@@ -1216,7 +1228,8 @@
         // Set all segments to the same color based on overall risk level
         riskData.datasets[0].backgroundColor = Array(4).fill(color);
     }
-
+    let currentContractSection = apiResponse[0];
+    let messages = [];
     // Function to create contract sections in sidebar
     function createContractSections(data) {
         const teamDatabaseSection = document.querySelector('.nav-section:first-child');
@@ -1242,10 +1255,10 @@
                 // Handle both array and single object cases
                 const itemsArray = Array.isArray(ruleItems) ? ruleItems : [ruleItems];
                 
-                itemsArray.forEach(item => {
+                itemsArray.forEach((item, index) => {
                     if (item && item.Output && item.Output.result) {
                         const result = item.Output.result;
-
+                        item.messages = [];
                         const contractSection = document.createElement('div');
                         contractSection.className = 'contract-section';
                         contractSection.innerHTML = `${result.ruleTitle} <span class="rule-sequence">${result.ruleSequence}</span>`;
@@ -1256,6 +1269,8 @@
                             document.querySelectorAll('.contract-section').forEach(section => section.classList.remove('active'));
                             this.classList.add('active');
                             loadContractDetails(JSON.parse(this.dataset.result));
+                            currentContractSection = item;
+                            updateMessagesContainer(currentContractSection.messages || []);
                         });
                         contractSectionsContainer.appendChild(contractSection);
                     }
@@ -1441,6 +1456,7 @@
                 riskMarker.style.backgroundColor = color;
             }, 50);
         }
+        updateMessagesContainer(currentContractSection.messages);
 
         // Populate Risks Tab
         if (result.subRisks && result.subRisks.length > 0) {
@@ -1553,35 +1569,8 @@
             window.location.href = 'document.html';
         });
 
-    }
-    ;
-        let details = {
-      "examineResult": "需要修改",
-      "ruleTag": "审查合同的合法性",
-      "ruleTitle": "投标保证金要求,收取金额计算",
-      "examineBrief": "本任务为审查合同主体条款的信息完整性和主体资格的有效性。合同文本中仅提供了双方公司的名称,缺少详细的主体信息和主体资格的有效性证明,因此应当做如下修正,以避免潜在的法律风险。",
-      "riskLevel": "high",
-      "subRisks": [
-        {
-          "riskClause": "合同主体条款",
-          "riskBrief": "主体信息不完整",
-          "riskExplain": "合同文本中仅提供了双方公司的名称,但缺少详细的主体信息,如统一社会信用代码、法定代表人姓名、住所地等,可能导致法律风险。",
-          "resultType": "需修改",
-          "originalContent": "甲方:上海东普信息科技有限公司\n乙方:深圳市优博讯科技股份有限公司",
-          "resultContent": "甲方:上海东普信息科技有限公司,注册地址:上海市浦东新区XX路XX号,法定代表人:张伟,统一社会信用代码:91310000MA07FX2036,银行账户:6222020012345678901\n乙方:深圳市优博讯科技股份有限公司,注册地址:深圳市南山区XX路XX号,法定代表人:李华,统一社会信用代码:91440300MA07FX2037,银行账户:6222020012345678902"
-        },
-        {
-          "riskClause": "合同主体条款",
-          "riskBrief": "主体资格有效性未确认",
-          "riskExplain": "合同文本中未明确表示双方是否依法成立并有效存续,可能导致法律风险。",
-          "resultType": "需增加",
-          "originalContent": "甲方:上海东普信息科技有限公司\n乙方:深圳市优博讯科技股份有限公司",
-          "resultContent": "\n双方确认,甲方和乙方均为依法成立并有效存续的企业法人,具备签订本合同的主体资格。"
-        }
-      ],
-      "ruleSequence": "1.1"
     };
-        let messages = [];
+
         function updateMessagesContainer(messages) {
             $('#messages-container').empty();
             messages.forEach(message => {
@@ -1590,22 +1579,21 @@
             $('#messages-container').scrollTop($('#messages-container')[0].scrollHeight);
         }
         async function sendMessageToAI(message, messages) {
-            messages.push({ role: 'user', content: message });
-            updateMessagesContainer(messages);
-            console.log(apiResponse);
+            currentContractSection.messages.push({ role: 'user', content: message });
+            updateMessagesContainer(currentContractSection.messages);
             await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ messages: messages, document_details: apiResponse })
+                body: JSON.stringify({ messages: messages, document_details: currentContractSection })
             }).then(async response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
                 let data = await response.json();
-                messages.push({ role: data.message.role, content: data.message.content });
-                updateMessagesContainer(messages);
+                currentContractSection.messages.push({ role: data.message.role, content: data.message.content });
+                updateMessagesContainer(currentContractSection.messages);
 
             }).catch(error => {
                   console.error('Error:', error);
@@ -1620,6 +1608,23 @@
             $('#messages-container').append('<div><strong>You:</strong> ' + userInput + '</div>');
             $('#user-input').val(''); // Clear input field
             sendMessageToAI(userInput, messages);
+        });
+        $('#user-input').keypress(function(event) {
+            if( event.which === 13 && !event.shiftKey) { // Enter key without Shift
+                event.preventDefault(); // Prevent default newline behavior
+                const userInput = $('#user-input').val();
+                if (userInput.trim() === '') return;
+
+                // Append user message to the chat container
+                $('#messages-container').append('<div><strong>You:</strong> ' + userInput + '</div>');
+                $('#user-input').val(''); // Clear input field
+                sendMessageToAI(userInput, messages);
+            }else if (event.which === 13 && event.shiftKey) {
+                // Allow Shift + Enter to create a new line
+                const currentText = $('#user-input').val();
+                $('#user-input').val(currentText + '\n');
+
+            }
         });
     // Initialize the application when DOM is loaded
     document.addEventListener('DOMContentLoaded', () => {
@@ -1658,7 +1663,24 @@
                 </div>
             `;
         }
+        function exportMessagesAsTxt(messages) {
+            const text = messages.map(m => `${m.role}: ${m.content}`).join('\n');
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
 
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'chat.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Example: Attach to your download button
+        document.getElementById('download-chat-button').addEventListener('click', function() {
+            exportMessagesAsTxt(currentContractSection.messages || []);
+        });
         // Document Analysis click handler - now just marks as active
         document.querySelector('.nav-item[href="Analytics_Dashboard"]')?.addEventListener('click', function(e) {
             e.preventDefault();
