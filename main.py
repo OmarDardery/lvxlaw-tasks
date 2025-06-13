@@ -162,6 +162,7 @@ async def get_consultancy(request: ChatRequest):
     Given the following legal document and a history of a chat, perform the following tasks:
     1. Analyze the document
     2. answer the user's question based on the document.
+    3. talk to the user in a friendly and professional manner, responding intuitively to their queries.
     Here is the legal document:\n\n{request.document_details.Output}\n\n
     Here is the chat history:\n\n{request.messages}
         """

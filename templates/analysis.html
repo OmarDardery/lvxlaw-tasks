@@ -654,6 +654,8 @@
             border: 1px solid #ccc;
             padding: 10px;
             width: 100%;
+            display: flex;
+            flex-direction: column;
         }
         /* Modification Group Box */
         .modification-item {
@@ -806,7 +808,24 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
-
+        .user-message {
+            background: #e0f7fa;
+            color: #006064;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            align-self: flex-end;
+        }
+        .ai-message {
+            background: #f5fff7;
+            color: #333;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            align-self: flex-start;
+        }
         /* Responsive adjustments */
         @media (max-width: 1024px) {
             .main-content {
@@ -1229,7 +1248,6 @@
         riskData.datasets[0].backgroundColor = Array(4).fill(color);
     }
     let currentContractSection = apiResponse[0];
-    let messages = [];
     // Function to create contract sections in sidebar
     function createContractSections(data) {
         const teamDatabaseSection = document.querySelector('.nav-section:first-child');
@@ -1574,19 +1592,21 @@
         function updateMessagesContainer(messages) {
             $('#messages-container').empty();
             messages.forEach(message => {
-                $('#messages-container').append('<div><strong>' + message.role + ':</strong> ' + message.content + '</div>');
+                classname = message.role === 'user' ? 'user-message' : 'ai-message';
+                $('#messages-container').append(`<div class="${classname}">`+ message.content + '</div>');
             });
             $('#messages-container').scrollTop($('#messages-container')[0].scrollHeight);
         }
-        async function sendMessageToAI(message, messages) {
+        async function sendMessageToAI(message) {
             currentContractSection.messages.push({ role: 'user', content: message });
             updateMessagesContainer(currentContractSection.messages);
+            const {messages, ...document_details} = currentContractSection;
             await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ messages: messages, document_details: currentContractSection })
+                body: JSON.stringify({ messages: messages, document_details: document_details })
             }).then(async response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -1607,7 +1627,7 @@
             // Append user message to the chat container
             $('#messages-container').append('<div><strong>You:</strong> ' + userInput + '</div>');
             $('#user-input').val(''); // Clear input field
-            sendMessageToAI(userInput, messages);
+            sendMessageToAI(userInput);
         });
         $('#user-input').keypress(function(event) {
             if( event.which === 13 && !event.shiftKey) { // Enter key without Shift
@@ -1618,7 +1638,7 @@
                 // Append user message to the chat container
                 $('#messages-container').append('<div><strong>You:</strong> ' + userInput + '</div>');
                 $('#user-input').val(''); // Clear input field
-                sendMessageToAI(userInput, messages);
+                sendMessageToAI(userInput);
             }else if (event.which === 13 && event.shiftKey) {
                 // Allow Shift + Enter to create a new line
                 const currentText = $('#user-input').val();
